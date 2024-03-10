@@ -63,6 +63,7 @@ def train_loop(rank, size, model, epoch, optimizer, device, trainloader, logger)
             logger.log({'loss': print_loss}, step= epoch * len_train * inputs.shape[0] + i * batch_size)
             
             running_loss = 0.0
+    dist.barrier()
 
 
 
@@ -122,7 +123,8 @@ def test_loop(rank, size, model, epoch, device, testloader, logger):
         logger.log({'accuracy': correct / total, 'epoch': epoch})
 
         # print statistics
-        
+    
+    dist.barrier()
 
 
 
