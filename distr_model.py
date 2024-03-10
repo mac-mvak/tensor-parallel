@@ -16,7 +16,7 @@ from model_shards import ModelShard
 
 
 
-def init_process(rank, size, batch_size, fn, master_port, backend='gloo'):
+def init_process(rank, size, batch_size, fn, master_port, backend='nccl'):
     """ Initialize the distributed environment. """
     os.environ['MASTER_ADDR'] = '127.0.0.1'
     os.environ['MASTER_PORT'] = str(master_port)
@@ -43,7 +43,7 @@ def main_train(rank, size, batch_size):
     else:
         testloader = trainloader = None
 
-    device = torch.device('cpu')
+    device = torch.device(rank)
     model = ModelShard(rank, size)
     model = model.to(device)
     optimizer = torch.optim.SGD(model.parameters(), lr=0.01, momentum=0.5)
@@ -60,12 +60,16 @@ def main_train(rank, size, batch_size):
 
 
 if __name__ == "__main__":
-    size = 4
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-b', type=int, help='batch_size', default=64)
+    parser.add_argument('-s', type=int, help='size', default=4)
+    args = parser.parse_args()
+    size = args.s
+    batch_size = args.b
     processes = []
     port = random.randint(25000, 30000)
     assert 100 % size == 0
     assert 32 % size == 0
-    batch_size = 64
     for rank in range(size):
         p = Process(target=init_process, args=(rank, size, batch_size, main_train, port))
         p.start()
