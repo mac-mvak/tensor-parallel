@@ -58,6 +58,8 @@ def main_train(rank, size, batch_size):
         train_loop(rank, size, model, epoch, optimizer, device, trainloader, logger)
         test_loop(rank, size, model, epoch, device, testloader, logger)
 
+    if rank == size - 1:
+        logger.finish()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

@@ -70,14 +70,14 @@ def train_loop(rank, size, model, epoch, optimizer, device, trainloader, logger)
 @torch.no_grad()
 def test_loop(rank, size, model, epoch, device, testloader, logger):
     if rank == 0:
-        lens =  torch.empty(1, dtype=int)
+        lens =  torch.empty(1, dtype=int, device=device)
         lens[0] = len(testloader)
 
         scatter_list = [lens.clone() for _ in range(size)]
-        lens = torch.empty(1, dtype=int)
+        lens = torch.empty(1, dtype=int, device=device)
         dist.scatter(lens, scatter_list=scatter_list, src=0)
     else:
-        lens = torch.empty(1, dtype=int)
+        lens = torch.empty(1, dtype=int, device=device)
         dist.scatter(lens, src=0)
     
     len_test = lens[0].item()
@@ -105,7 +105,7 @@ def test_loop(rank, size, model, epoch, device, testloader, logger):
             dummy = torch.empty_like(inputs)
             dist.scatter(dummy, scatter_list=scatter_list, src=0)
         else:
-            batch_size = torch.tensor(1, dtype=int)
+            batch_size = torch.tensor(1, dtype=int, device=device)
             dist.scatter(batch_size, src=0)
             labels = torch.empty(batch_size, dtype=int, device=device)
             dist.scatter(labels, src=0)
@@ -125,9 +125,4 @@ def test_loop(rank, size, model, epoch, device, testloader, logger):
         # print statistics
     
     dist.barrier()
-
-
-
-
-
 
